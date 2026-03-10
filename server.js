@@ -217,7 +217,7 @@ app.post("/createOrder", async (req, res) => {
         (ID_user, Status_order, Delivery_address, Comment_order, Delivery_time, Date_order, ID_discount)
         OUTPUT INSERTED.ID_order
         VALUES 
-        (${ID_user}, 'Новый', ${Delivery_address}, ${Comment_order}, ${Delivery_time}, GETDATE(), ${discountId})
+        (${ID_user}, N'Новый', ${Delivery_address}, ${Comment_order}, ${Delivery_time}, GETDATE(), ${discountId})
         `;
 
         const orderId = order.recordset[0].ID_order;
