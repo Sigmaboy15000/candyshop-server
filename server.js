@@ -11,15 +11,14 @@ app.use(express.json());
 app.use('/images', express.static('images'));
 
 const config = {
-    user: "sa",
-    password: "12345",
-    server: "localhost",
-    database: "ConfectioneryDB",
-    port: 1433,
+    server: 'den1.mssql8.gear.host',
+    database: 'candyshop',
+    user: 'candyshop',
+    password: 'Kn4PFj43~?41',
     options: {
-        trustServerCertificate: true
+        encrypt: false
     }
-};
+}
 
 // подключение к базе при запуске сервера
 sql.connect(config)
