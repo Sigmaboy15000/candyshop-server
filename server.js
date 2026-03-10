@@ -280,7 +280,6 @@ VALUES
 
 app.get("/orders/:userId", async (req, res) => {
     const { userId } = req.params;
-
     try {
         const result = await sql.query`
             SELECT 
@@ -288,12 +287,11 @@ app.get("/orders/:userId", async (req, res) => {
                 Status_order,
                 Delivery_address,
                 Comment_order,
-                Date_order
+                FORMAT(Date_order, 'dd.MM.yyyy HH:mm') AS Date_order
             FROM Orders
             WHERE ID_user = ${userId}
             ORDER BY Date_order DESC
         `;
-
         res.json(result.recordset);
     } catch (err) {
         res.status(500).send(err.message);
