@@ -282,19 +282,17 @@ app.get("/orders/:userId", async (req, res) => {
     const { userId } = req.params;
 
     try {
-        const result = await pool.request()
-            .input("userId", sql.Int, userId)
-            .query(`
-                SELECT 
-                    ID_order,
-                    Status_order,
-                    Delivery_address,
-                    Comment_order,
-                    Date_order
-                FROM Orders
-                WHERE ID_user = @userId
-                ORDER BY Date_order DESC
-            `);
+        const result = await sql.query`
+            SELECT 
+                ID_order,
+                Status_order,
+                Delivery_address,
+                Comment_order,
+                Date_order
+            FROM Orders
+            WHERE ID_user = ${userId}
+            ORDER BY Date_order DESC
+        `;
 
         res.json(result.recordset);
     } catch (err) {
@@ -308,17 +306,15 @@ app.get("/orderItems/:orderId", async (req, res) => {
     const { orderId } = req.params;
 
     try {
-        const result = await pool.request()
-            .input("orderId", sql.Int, orderId)
-            .query(`
-                SELECT 
-                    p.Name_product,
-                    oi.Quantity,
-                    p.Price_product
-                FROM Order_items oi
-                JOIN Products p ON oi.ID_product = p.ID_product
-                WHERE oi.ID_order = @orderId
-            `);
+        const result = await sql.query`
+            SELECT 
+                p.Name_product,
+                oi.Quantity,
+                p.Price_product
+            FROM Order_items oi
+            JOIN Products p ON oi.ID_product = p.ID_product
+            WHERE oi.ID_order = ${orderId}
+        `;
 
         res.json(result.recordset);
     } catch (err) {
