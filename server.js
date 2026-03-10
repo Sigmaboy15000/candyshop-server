@@ -302,18 +302,16 @@ app.get("/orders/:userId", async (req, res) => {
 
 app.get("/orderItems/:orderId", async (req, res) => {
     const { orderId } = req.params;
-
     try {
         const result = await sql.query`
             SELECT 
                 p.Name_product,
-                oi.Quantity,
+                oi.Quantity_product AS Quantity,
                 p.Price_product
             FROM Order_items oi
             JOIN Products p ON oi.ID_product = p.ID_product
             WHERE oi.ID_order = ${orderId}
         `;
-
         res.json(result.recordset);
     } catch (err) {
         res.status(500).send(err.message);
