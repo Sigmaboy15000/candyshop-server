@@ -368,21 +368,27 @@ app.post("/admin/reject/:id", async (req, res) => {
 
 // ── ADMIN: добавить товар ──
 app.post("/admin/products", async (req, res) => {
-    const { name, description, price, category_id, image_url } = req.body;
+    const { name, description, price, category_id, image_url, unit_id } = req.body;
     try {
-        await sql.query`INSERT INTO Products (Name_product, Description_product, Price_product, ID_category, image_url) VALUES (${name}, ${description}, ${price}, ${category_id}, ${image_url})`;
+        await sql.query`INSERT INTO Products (Name_product, Description_product, Price_product, ID_category, image_url, ID_unit) VALUES (${name}, ${description}, ${price}, ${category_id}, ${image_url}, ${unit_id})`;
         res.json({ success: true });
-    } catch (err) { res.status(500).send("Ошибка сервера"); }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Ошибка сервера");
+    }
 });
 
 // ── ADMIN: редактировать товар ──
 app.put("/admin/products/:id", async (req, res) => {
     const { id } = req.params;
-    const { name, description, price, category_id, image_url } = req.body;
+    const { name, description, price, category_id, image_url, unit_id } = req.body;
     try {
-        await sql.query`UPDATE Products SET Name_product = ${name}, Description_product = ${description}, Price_product = ${price}, ID_category = ${category_id}, image_url = ${image_url} WHERE ID_product = ${id}`;
+        await sql.query`UPDATE Products SET Name_product = ${name}, Description_product = ${description}, Price_product = ${price}, ID_category = ${category_id}, image_url = ${image_url}, ID_unit = ${unit_id} WHERE ID_product = ${id}`;
         res.json({ success: true });
-    } catch (err) { res.status(500).send("Ошибка сервера"); }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Ошибка сервера");
+    }
 });
 
 // ── ADMIN: удалить товар ──
