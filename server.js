@@ -151,7 +151,8 @@ app.post("/login", async (req, res) => {
             res.json({
                 success: true,
                 message: "Login successful",
-                userId: user.ID_user
+                userId: user.ID_user,
+                role: user.Role_user === 1 ? 'admin' : 'user'
             });
 
         } else {
@@ -297,6 +298,7 @@ app.get("/orders/:userId", async (req, res) => {
                 Status_order,
                 Delivery_address,
                 Comment_order,
+                Order_sum,
                 FORMAT(Date_order, 'dd.MM.yyyy HH:mm') AS Date_order
             FROM Orders
             WHERE ID_user = ${userId}
@@ -326,6 +328,70 @@ app.get("/orderItems/:orderId", async (req, res) => {
     } catch (err) {
         res.status(500).send(err.message);
     }
+});
+
+
+// ── ADMIN: все заказы ──
+app.get("/admin/orders", async (req, res) => {
+    try {
+        const result = await sql.query`
+            SELECT o.ID_order, o.Status_order, o.Delivery_address,
+                   o.Comment_order, o.Date_order, o.Order_sum,
+                   o.Delivery_time, o.Reject_reason,
+                   c.FIO_client, c.Phone_client, c.Email_client
+            FROM Orders o
+            JOIN Clients c ON o.ID_user = c.ID_user
+            ORDER BY o.Date_order DESC
+        `;
+        res.json(result.recordset);
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ADMIN: одобрить заказ ──
+app.post("/admin/approve/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await sql.query`UPDATE Orders SET Status_order = N'Готовится' WHERE ID_order = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ADMIN: отклонить заказ ──
+app.post("/admin/reject/:id", async (req, res) => {
+    const { id } = req.params;
+    const { reason } = req.body;
+    try {
+        await sql.query`UPDATE Orders SET Status_order = N'Отменён', Reject_reason = ${reason} WHERE ID_order = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ADMIN: добавить товар ──
+app.post("/admin/products", async (req, res) => {
+    const { name, description, price, category_id, image_url } = req.body;
+    try {
+        await sql.query`INSERT INTO Products (Name_product, Description_product, Price_product, ID_category, image_url) VALUES (${name}, ${description}, ${price}, ${category_id}, ${image_url})`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ADMIN: редактировать товар ──
+app.put("/admin/products/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, description, price, category_id, image_url } = req.body;
+    try {
+        await sql.query`UPDATE Products SET Name_product = ${name}, Description_product = ${description}, Price_product = ${price}, ID_category = ${category_id}, image_url = ${image_url} WHERE ID_product = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ADMIN: удалить товар ──
+app.delete("/admin/products/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await sql.query`DELETE FROM Products WHERE ID_product = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
 });
 
 
