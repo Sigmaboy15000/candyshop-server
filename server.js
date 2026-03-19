@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
   origin: [
-    'https://neon-dragon-019a4f.netlify.app', 
+    'https://candyshop-super-candy.netlify.app', 
     'http://localhost:3000'
   ]
 }));
