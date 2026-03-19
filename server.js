@@ -6,7 +6,17 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors());
+
+
+app.use(cors({
+  origin: [
+    'https://neon-dragon-019a4f.netlify.app', 
+    'http://localhost:3000'
+  ]
+}));
+
+
+
 app.use(express.json());
 app.use('/images', express.static('images'));
 
