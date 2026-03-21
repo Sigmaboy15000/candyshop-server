@@ -336,8 +336,9 @@ app.get("/admin/orders", async (req, res) => {
     try {
         const result = await sql.query`
             SELECT o.ID_order, o.Status_order, o.Delivery_address,
-                   o.Comment_order, o.Date_order, o.Order_sum,
+                   o.Comment_order, o.Order_sum,
                    o.Delivery_time, o.Reject_reason,
+                   FORMAT(o.Date_order, 'dd.MM.yyyy HH:mm') AS Date_order,
                    c.FIO_client, c.Phone_client, c.Email_client
             FROM Orders o
             JOIN Clients c ON o.ID_user = c.ID_user
