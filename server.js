@@ -402,6 +402,115 @@ app.delete("/admin/products/:id", async (req, res) => {
 });
 
 
+// ── ОТЧЁТ В-01: Заказ по номеру ──
+app.get("/report/order/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const order = await sql.query`
+            SELECT o.ID_order, o.Status_order, o.Delivery_address,
+                   o.Comment_order, o.Delivery_time, o.Order_sum,
+                   FORMAT(o.Date_order, 'dd.MM.yyyy') AS Date_order,
+                   c.FIO_client, c.Email_client, c.Phone_client,
+                   d.Discount_percent
+            FROM Orders o
+            JOIN Clients c ON o.ID_user = c.ID_user
+            JOIN Discount d ON o.ID_discount = d.ID_discount
+            WHERE o.ID_order = ${id}`;
+        const items = await sql.query`
+            SELECT p.Name_product,
+                   cat.Name_category,
+                   u.Short_unit AS Unit,
+                   p.Price_product,
+                   oi.Quantity_product,
+                   oi.Sum_position
+            FROM Order_items oi
+            JOIN Products p ON oi.ID_product = p.ID_product
+            JOIN Categories cat ON p.ID_category = cat.ID_category
+            JOIN Units u ON p.ID_unit = u.ID_unit
+            WHERE oi.ID_order = ${id}`;
+        if (!order.recordset.length) return res.status(404).json({ error: 'Заказ не найден' });
+        res.json({ order: order.recordset[0], items: items.recordset });
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ОТЧЁТ В-02: По проданным изделиям за период ──
+app.get("/report/products", async (req, res) => {
+    const { date_start, date_end } = req.query;
+    try {
+        const result = await sql.query`
+            SELECT p.Name_product,
+                   cat.Name_category,
+                   u.Short_unit AS Unit,
+                   SUM(oi.Quantity_product) AS Quantity,
+                   p.Price_product,
+                   SUM(oi.Sum_position) AS Total
+            FROM Order_items oi
+            JOIN Products p ON oi.ID_product = p.ID_product
+            JOIN Categories cat ON p.ID_category = cat.ID_category
+            JOIN Units u ON p.ID_unit = u.ID_unit
+            JOIN Orders o ON oi.ID_order = o.ID_order
+            WHERE CAST(o.Date_order AS DATE) BETWEEN ${date_start} AND ${date_end}
+            GROUP BY p.Name_product, cat.Name_category, u.Short_unit, p.Price_product
+            ORDER BY p.Name_product`;
+        res.json(result.recordset);
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ОТЧЁТ В-03: По выданным заказам за период ──
+app.get("/report/orders", async (req, res) => {
+    const { date_start, date_end } = req.query;
+    try {
+        const result = await sql.query`
+            SELECT o.ID_order,
+                   FORMAT(o.Date_order, 'dd.MM.yyyy') AS Date_order,
+                   c.FIO_client, c.Phone_client,
+                   o.Comment_order, o.Order_sum
+            FROM Orders o
+            JOIN Clients c ON o.ID_user = c.ID_user
+            WHERE CAST(o.Date_order AS DATE) BETWEEN ${date_start} AND ${date_end}
+            ORDER BY o.Date_order`;
+        res.json(result.recordset);
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ОТЧЁТ В-04: По продажам по категории за период ──
+app.get("/report/category", async (req, res) => {
+    const { date_start, date_end, category_id } = req.query;
+    try {
+        const result = await sql.query`
+            SELECT p.Name_product,
+                   u.Short_unit AS Unit,
+                   SUM(oi.Quantity_product) AS Quantity,
+                   p.Price_product,
+                   SUM(oi.Sum_position) AS Total
+            FROM Order_items oi
+            JOIN Products p ON oi.ID_product = p.ID_product
+            JOIN Units u ON p.ID_unit = u.ID_unit
+            JOIN Orders o ON oi.ID_order = o.ID_order
+            WHERE CAST(o.Date_order AS DATE) BETWEEN ${date_start} AND ${date_end}
+            AND p.ID_category = ${category_id}
+            GROUP BY p.Name_product, u.Short_unit, p.Price_product
+            ORDER BY p.Name_product`;
+        res.json(result.recordset);
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ОТЧЁТ В-05: Список заказов клиента по ФИО ──
+app.get("/report/client", async (req, res) => {
+    const { fio } = req.query;
+    try {
+        const result = await sql.query`
+            SELECT o.ID_order,
+                   FORMAT(o.Date_order, 'dd.MM.yyyy') AS Date_order,
+                   o.Status_order, o.Comment_order, o.Order_sum
+            FROM Orders o
+            JOIN Clients c ON o.ID_user = c.ID_user
+            WHERE c.FIO_client LIKE ${'%' + fio + '%'}
+            ORDER BY o.Date_order DESC`;
+        res.json(result.recordset);
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
 // ------------------- ЗАПУСК СЕРВЕРА -------------------
 
 const PORT = process.env.PORT || 3000;
