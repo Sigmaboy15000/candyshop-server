@@ -511,6 +511,34 @@ app.get("/report/client", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
+// ── Получить профиль пользователя ──
+app.get("/profile/:userId", async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const result = await sql.query`
+            SELECT ID_user, FIO_client, Email_client, Phone_client, Role_user
+            FROM Clients
+            WHERE ID_user = ${userId}
+        `;
+        if (!result.recordset.length) return res.status(404).json({ error: 'Пользователь не найден' });
+        res.json(result.recordset[0]);
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
+// ── Обновить профиль пользователя ──
+app.put("/profile/:userId", async (req, res) => {
+    const { userId } = req.params;
+    const { fio, phone } = req.body;
+    try {
+        await sql.query`
+            UPDATE Clients
+            SET FIO_client = ${fio}, Phone_client = ${phone}
+            WHERE ID_user = ${userId}
+        `;
+        res.json({ success: true });
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
+
 // ------------------- ЗАПУСК СЕРВЕРА -------------------
 
 const PORT = process.env.PORT || 3000;
