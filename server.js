@@ -30,7 +30,7 @@ const config = {
     }
 }
 
-// подключение к базе при запуске сервера
+// подключение к бд
 sql.connect(config)
     .then(() => {
         console.log("Connected to SQL Server");
@@ -40,7 +40,7 @@ sql.connect(config)
     });
 
 
-// ------------------- ПОЛУЧЕНИЕ ТОВАРОВ -------------------
+// получение товаров из бд
 
 app.get("/products", async (req, res) => {
 
@@ -130,7 +130,7 @@ app.get("/productsByCategory", async (req, res) => {
 
 });
 
-// ------------------- ЛОГИН -------------------
+// логин
 
 app.post("/login", async (req, res) => {
 
@@ -199,7 +199,7 @@ app.post("/register", async (req,res)=>{
 });
 
 
-// ------------------- СОЗДАНИЕ ЗАКАЗА -------------------
+//создание заказа
 
 app.post("/createOrder", async (req, res) => {
 
@@ -287,7 +287,7 @@ VALUES
 
 });
 
-// ------------------- Получить заказы пользователя -------------------
+//заказ пользователя
 
 app.get("/orders/:userId", async (req, res) => {
     const { userId } = req.params;
@@ -310,7 +310,7 @@ app.get("/orders/:userId", async (req, res) => {
     }
 });
 
-// ------------------- Получить состав заказа (чек) -------------------
+//состав заказа
 
 app.get("/orderItems/:orderId", async (req, res) => {
     const { orderId } = req.params;
@@ -331,7 +331,7 @@ app.get("/orderItems/:orderId", async (req, res) => {
 });
 
 
-// ── ADMIN: все заказы ──
+//админ заказы
 app.get("/admin/orders", async (req, res) => {
     try {
         const result = await sql.query`
@@ -348,7 +348,7 @@ app.get("/admin/orders", async (req, res) => {
     } catch (err) { res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ADMIN: одобрить заказ ──
+//админ одобрить заказ
 app.post("/admin/approve/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -357,7 +357,7 @@ app.post("/admin/approve/:id", async (req, res) => {
     } catch (err) { res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ADMIN: отклонить заказ ──
+//админ отклонить заказ
 app.post("/admin/reject/:id", async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
@@ -367,7 +367,7 @@ app.post("/admin/reject/:id", async (req, res) => {
     } catch (err) { res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ADMIN: добавить товар ──
+//админ добавить товар
 app.post("/admin/products", async (req, res) => {
     const { name, description, price, category_id, image_url, unit_id } = req.body;
     try {
@@ -379,7 +379,7 @@ app.post("/admin/products", async (req, res) => {
     }
 });
 
-// ── ADMIN: редактировать товар ──
+//админ редактировать товар
 app.put("/admin/products/:id", async (req, res) => {
     const { id } = req.params;
     const { name, description, price, category_id, image_url, unit_id } = req.body;
@@ -392,7 +392,7 @@ app.put("/admin/products/:id", async (req, res) => {
     }
 });
 
-// ── ADMIN: удалить товар ──
+//админ удалить товар
 app.delete("/admin/products/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -402,13 +402,15 @@ app.delete("/admin/products/:id", async (req, res) => {
 });
 
 
-// ── ОТЧЁТ В-01: Заказ по номеру ──
+// В-01
 app.get("/report/order/:id", async (req, res) => {
     const { id } = req.params;
     try {
         const order = await sql.query`
             SELECT o.ID_order, o.Status_order, o.Delivery_address,
-                   o.Comment_order, o.Delivery_time, o.Order_sum,
+                   o.Comment_order,
+                   FORMAT(TRY_CAST(o.Delivery_time AS DATETIME), 'dd.MM.yyyy HH:mm') AS Delivery_time,
+                   o.Order_sum,
                    FORMAT(o.Date_order, 'dd.MM.yyyy') AS Date_order,
                    c.FIO_client, c.Email_client, c.Phone_client,
                    d.Discount_percent
@@ -433,7 +435,7 @@ app.get("/report/order/:id", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ОТЧЁТ В-02: По проданным изделиям за период ──
+//В-02
 app.get("/report/products", async (req, res) => {
     const { date_start, date_end } = req.query;
     try {
@@ -456,7 +458,7 @@ app.get("/report/products", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ОТЧЁТ В-03: По выданным заказам за период ──
+//В-03
 app.get("/report/orders", async (req, res) => {
     const { date_start, date_end } = req.query;
     try {
@@ -473,7 +475,7 @@ app.get("/report/orders", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ОТЧЁТ В-04: По продажам по категории за период ──
+//В-04
 app.get("/report/category", async (req, res) => {
     const { date_start, date_end, category_id } = req.query;
     try {
@@ -495,7 +497,7 @@ app.get("/report/category", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ── ОТЧЁТ В-05: Список заказов клиента по ФИО ──
+//В-05
 app.get("/report/client", async (req, res) => {
     const { fio } = req.query;
     try {
@@ -511,7 +513,7 @@ app.get("/report/client", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ── Получить профиль пользователя ──
+//Профиль пользователя
 app.get("/profile/:userId", async (req, res) => {
     const { userId } = req.params;
     try {
@@ -525,7 +527,7 @@ app.get("/profile/:userId", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ── Обновить профиль пользователя ──
+//Обновление профиля
 app.put("/profile/:userId", async (req, res) => {
     const { userId } = req.params;
     const { fio, phone } = req.body;
@@ -539,7 +541,7 @@ app.put("/profile/:userId", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
-// ------------------- ЗАПУСК СЕРВЕРА -------------------
+//запуск сервера
 
 const PORT = process.env.PORT || 3000;
 
