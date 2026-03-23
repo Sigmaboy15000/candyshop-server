@@ -11,6 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: [
     'https://candyshop-super-candy.netlify.app',
+    'https://69c1a13---candyshop-super-candy.netlify.app',
     'http://localhost:3000'
   ]
 }));
