@@ -51,14 +51,17 @@ app.get("/products", async (req, res) => {
         if (category) {
 
             const result = await sql.query`
-                SELECT ID_product,
-                       Name_product,
-                       Description_product,
-                       Price_product,
-                       image_url,
-                       ID_category
-                FROM Products
-                WHERE ID_category = ${category}
+                SELECT p.ID_product,
+                       p.Name_product,
+                       p.Description_product,
+                       p.Price_product,
+                       p.image_url,
+                       p.ID_category,
+                       p.ID_discount,
+                       d.Discount_percent
+                FROM Products p
+                LEFT JOIN Discount d ON p.ID_discount = d.ID_discount
+                WHERE p.ID_category = ${category}
             `;
 
             res.json(result.recordset);
@@ -66,13 +69,16 @@ app.get("/products", async (req, res) => {
         } else {
 
             const result = await sql.query(`
-                SELECT ID_product,
-                       Name_product,
-                       Description_product,
-                       Price_product,
-                       image_url,
-                       ID_category
-                FROM Products
+                SELECT p.ID_product,
+                       p.Name_product,
+                       p.Description_product,
+                       p.Price_product,
+                       p.image_url,
+                       p.ID_category,
+                       p.ID_discount,
+                       d.Discount_percent
+                FROM Products p
+                LEFT JOIN Discount d ON p.ID_discount = d.ID_discount
             `);
 
             res.json(result.recordset);
@@ -542,6 +548,28 @@ app.put("/profile/:userId", async (req, res) => {
 });
 
 //запуск сервера
+
+// ── ADMIN: получить список скидок ──
+app.get("/admin/discounts", async (req, res) => {
+    try {
+        const result = await sql.query`SELECT ID_discount, Name_discount, Discount_percent FROM Discount`;
+        res.json(result.recordset);
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+
+// ── ADMIN: установить/снять скидку на товар ──
+app.put("/admin/products/:id/discount", async (req, res) => {
+    const { id } = req.params;
+    const { discount_id } = req.body;
+    try {
+        if (discount_id) {
+            await sql.query`UPDATE Products SET ID_discount = ${discount_id} WHERE ID_product = ${id}`;
+        } else {
+            await sql.query`UPDATE Products SET ID_discount = NULL WHERE ID_product = ${id}`;
+        }
+        res.json({ success: true });
+    } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
+});
 
 const PORT = process.env.PORT || 3000;
 
