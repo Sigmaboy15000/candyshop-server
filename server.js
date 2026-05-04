@@ -309,7 +309,7 @@ app.get("/orders/:userId", async (req, res) => {
                 FORMAT(Date_order, 'dd.MM.yyyy HH:mm') AS Date_order
             FROM Orders
             WHERE ID_user = ${userId}
-            ORDER BY Date_order DESC
+            ORDER BY CAST(Date_order AS DATETIME) DESC
         `;
         res.json(result.recordset);
     } catch (err) {
