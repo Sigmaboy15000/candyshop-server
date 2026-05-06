@@ -659,6 +659,10 @@ app.put("/admin/units/:id", async (req, res) => {
 app.delete("/admin/units/:id", async (req, res) => {
     const { id } = req.params;
     try {
+        const check = await sql.query`SELECT COUNT(*) as cnt FROM Products WHERE ID_unit = ${id}`;
+        if (check.recordset[0].cnt > 0) {
+            return res.status(400).json({ success: false, message: "Нельзя удалить единицу измерения, которая используется в товарах" });
+        }
         await sql.query`DELETE FROM Units WHERE ID_unit = ${id}`;
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false }); }
