@@ -599,6 +599,10 @@ app.put("/admin/categories/:id", async (req, res) => {
 app.delete("/admin/categories/:id", async (req, res) => {
     const { id } = req.params;
     try {
+        const check = await sql.query`SELECT COUNT(*) as cnt FROM Products WHERE ID_category = ${id}`;
+        if (check.recordset[0].cnt > 0) {
+            return res.status(400).json({ success: false, message: "Нельзя удалить категорию, в которой есть товары" });
+        }
         await sql.query`DELETE FROM Categories WHERE ID_category = ${id}`;
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false }); }
