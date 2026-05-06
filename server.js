@@ -572,6 +572,94 @@ app.put("/admin/products/:id/discount", async (req, res) => {
     } catch (err) { console.log(err); res.status(500).send("Ошибка сервера"); }
 });
 
+
+// ── СПРАВОЧНИКИ: Категории ──
+app.get("/admin/categories", async (req, res) => {
+    try {
+        const result = await sql.query`SELECT ID_category, Name_category FROM Categories ORDER BY ID_category`;
+        res.json(result.recordset);
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+app.post("/admin/categories", async (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: "Название обязательно" });
+    try {
+        await sql.query`INSERT INTO Categories (Name_category) VALUES (${name})`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+app.put("/admin/categories/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        await sql.query`UPDATE Categories SET Name_category = ${name} WHERE ID_category = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+app.delete("/admin/categories/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await sql.query`DELETE FROM Categories WHERE ID_category = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
+// ── СПРАВОЧНИКИ: Скидки ──
+app.post("/admin/discounts", async (req, res) => {
+    const { name, percent } = req.body;
+    if (!name || percent === undefined) return res.status(400).json({ success: false, message: "Заполните все поля" });
+    try {
+        await sql.query`INSERT INTO Discount (Name_discount, Discount_percent) VALUES (${name}, ${percent})`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+app.put("/admin/discounts/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, percent } = req.body;
+    try {
+        await sql.query`UPDATE Discount SET Name_discount = ${name}, Discount_percent = ${percent} WHERE ID_discount = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+app.delete("/admin/discounts/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await sql.query`DELETE FROM Discount WHERE ID_discount = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
+// ── СПРАВОЧНИКИ: Единицы измерения ──
+app.get("/admin/units", async (req, res) => {
+    try {
+        const result = await sql.query`SELECT ID_unit, Name_unit, Short_unit FROM Units ORDER BY ID_unit`;
+        res.json(result.recordset);
+    } catch (err) { res.status(500).send("Ошибка сервера"); }
+});
+app.post("/admin/units", async (req, res) => {
+    const { name, short } = req.body;
+    if (!name || !short) return res.status(400).json({ success: false, message: "Заполните все поля" });
+    try {
+        await sql.query`INSERT INTO Units (Name_unit, Short_unit) VALUES (${name}, ${short})`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+app.put("/admin/units/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, short } = req.body;
+    try {
+        await sql.query`UPDATE Units SET Name_unit = ${name}, Short_unit = ${short} WHERE ID_unit = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+app.delete("/admin/units/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        await sql.query`DELETE FROM Units WHERE ID_unit = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
