@@ -356,6 +356,18 @@ app.get("/admin/orders", async (req, res) => {
 });
 
 //админ одобрить заказ
+// Смена статуса заказа
+app.post("/admin/status/:id", async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const allowed = ['Готовится', 'Доставляется', 'Выполнен'];
+    if (!allowed.includes(status)) return res.status(400).json({ success: false, message: 'Недопустимый статус' });
+    try {
+        await sql.query`UPDATE Orders SET Status_order = ${status} WHERE ID_order = ${id}`;
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false }); }
+});
+
 app.post("/admin/approve/:id", async (req, res) => {
     const { id } = req.params;
     try {
